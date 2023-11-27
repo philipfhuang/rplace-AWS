@@ -5,33 +5,33 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-  }
-  
-  .color-picker-container {
+}
+
+.color-picker-container {
     margin-bottom: 20px;
     align-items: center;
-  }
-  
-  .canvas {
+}
+
+.canvas {
     display: grid;
     grid-template-columns: repeat(400, 5px);
     grid-template-rows: repeat(200, 5px);
-  }
-  
-  .pixel {
+}
+
+.pixel {
     width: 5px;
     height: 5px;
-  }
+}
 
-  .pixelBorder {
+.pixelBorder {
     border: 1px solid #ccc;
-  }
+}
 
-  .pixel:hover {
+.pixel:hover {
     border-color: black;
-  }
-  
-  #colorPicker {
+}
+
+#colorPicker {
     margin-top: 30px;
     width: 50px;
     height: 30px;
@@ -39,10 +39,10 @@ body {
     border: none;
     outline: none;
     cursor: pointer;
-  }
-  
-  .error-message {
+}
+
+.error-message {
     color: red;
     font-size: 50px;
     margin: 0;
-  }
+}
