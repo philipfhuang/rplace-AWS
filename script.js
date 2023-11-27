@@ -9,6 +9,7 @@ function initializeCanvas() {
         for (let j = 0; j < 400; j++) {
             const pixel = document.createElement('div');
             pixel.classList.add('pixel');
+            pixel.classList.add('pixelBorder');
             pixel.setAttribute('data-x', i);
             pixel.setAttribute('data-y', j);
             canvas.appendChild(pixel);
