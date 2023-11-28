@@ -50,10 +50,8 @@ function initializeCanvas() {
 }
 
 function updateCanvas(receivedData) {
-    receivedData.forEach(pixelData => {
-        const pixel = document.querySelector(`[data-x="${pixelData.x}"][data-y="${pixelData.y}"]`);
-        pixel.style.backgroundColor = pixelData.color;
-    })
+    const pixel = document.querySelector(`[data-x="${receivedData.x}"][data-y="${receivedData.y}"]`);
+    pixel.style.backgroundColor = receivedData.color;
 }
 
 function handlePixelClick(event) {
