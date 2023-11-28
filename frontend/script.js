@@ -3,6 +3,33 @@ const colorPicker = document.getElementById('colorPicker');
 const showBorder = document.getElementById('showBorder');
 let currentColor = colorPicker.value;
 let socket;
+const publishableKey = "pk_test_a25vd2luZy1jb3JnaS00MS5jbGVyay5hY2NvdW50cy5kZXYk"; // <- Add Publishable Key here
+
+const startClerk = async () => {
+  const Clerk = window.Clerk;
+
+  try {
+    // Load Clerk environment and session if available
+    await Clerk.load();
+
+    const userButton = document.getElementById("user-button");
+    const authLinks = document.getElementById("auth-links");
+
+    Clerk.addListener(({ user }) => {
+      // Display links conditionally based on user state
+      authLinks.style.display = user ? "none" : "block";
+    });
+
+    if (Clerk.user) {
+      // Mount user button component
+      Clerk.mountUserButton(userButton);
+      userButton.style.margin = "auto";
+    }
+  } catch (err) {
+    console.error("Error starting Clerk: ", err);
+  }
+};
+
 
 function initializeCanvas() {
     for (let i = 0; i < 200; i++) {
@@ -14,7 +41,6 @@ function initializeCanvas() {
             pixel.setAttribute('data-y', j);
             canvas.appendChild(pixel);
         }
-
     }
 
     const pixels = document.querySelectorAll('.pixel');
@@ -24,17 +50,24 @@ function initializeCanvas() {
 }
 
 function updateCanvas(receivedData) {
-    const pixel = document.querySelector(`[data-x="${receivedData.x}"][data-y="${receivedData.y}"]`);
-    pixel.style.backgroundColor = receivedData.color;
+    receivedData.forEach(pixelData => {
+        const pixel = document.querySelector(`[data-x="${pixelData.x}"][data-y="${pixelData.y}"]`);
+        pixel.style.backgroundColor = pixelData.color;
+    })
 }
 
 function handlePixelClick(event) {
+    if (!Clerk.user) {
+        Clerk.openSignIn()
+        return;
+    }
     const pixel = event.target;
     pixel.style.backgroundColor = currentColor;
     const pixelData = {
         x: pixel.dataset.x,
         y: pixel.dataset.y,
         color: currentColor,
+        user: Clerk.user.id,
     };
     socket.send(JSON.stringify(pixelData));
 }
@@ -73,5 +106,19 @@ function connectWebSocket() {
     // });
     initializeCanvas();
 }
+
+
+(() => {
+  const script = document.createElement("script");
+  script.setAttribute("data-clerk-publishable-key", publishableKey);
+  script.async = true;
+  script.src = `https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js`;
+  script.crossOrigin = "anonymous";
+  script.addEventListener("load", startClerk);
+  script.addEventListener("error", () => {
+    document.getElementById("no-frontend-api-warning").hidden = false;
+  });
+  document.body.appendChild(script);
+})();
 
 connectWebSocket();

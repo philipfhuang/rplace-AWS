@@ -7,6 +7,10 @@ body {
     margin: 0;
 }
 
+.login {
+    margin-top: 15px;
+}
+
 .color-picker-container {
     margin-bottom: 20px;
     align-items: center;
@@ -32,7 +36,7 @@ body {
 }
 
 #colorPicker {
-    margin-top: 30px;
+    margin-top: 10px;
     width: 50px;
     height: 30px;
     border-radius: 5px;
