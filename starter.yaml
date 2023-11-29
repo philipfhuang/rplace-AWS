@@ -9,8 +9,22 @@ Resources:
         - AttributeName: connectionId
           AttributeType: S
       ProvisionedThroughput:
-        ReadCapacityUnits: 12
-        WriteCapacityUnits: 12
+        ReadCapacityUnits: 10
+        WriteCapacityUnits: 10
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+  BoardTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: coordinate
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: coordinate
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 10
+        WriteCapacityUnits: 10
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
   ConnectHandlerServiceRole7E4A9B1F:
@@ -72,6 +86,32 @@ Resources:
                       statusCode: 500,
                     };
                   }
+                  let board;
+                  try {
+                    board = await ddb.scan({ TableName: process.env.boardTable }).promise();
+                  } catch (err) {
+                    return {
+                      statusCode: 500,
+                    };
+                  }
+                  const callbackAPI = new AWS.ApiGatewayManagementApi({
+                    apiVersion: '2018-11-29',
+                    endpoint:
+                      event.requestContext.domainName + '/' + event.requestContext.stage,
+                  });
+                  try {
+                    await callbackAPI
+                      .postToConnection({
+                        ConnectionId: event.requestContext.connectionId,
+                        Data: JSON.stringify(board),
+                      })
+                      .promise();
+                  } catch (e) {
+                    console.log(e);
+                    return {
+                      statusCode: 500,
+                    };
+                  }
                   return {
                     statusCode: 200,
                   };
@@ -84,6 +124,8 @@ Resources:
         Variables:
           table:
             Ref: ConnectionsTable8000B8A1
+          boardTable:
+            Ref: BoardTable
       Handler: index.handler
       Runtime: nodejs16.x
     DependsOn:
@@ -209,6 +251,24 @@ Resources:
                 const ddb = new AWS.DynamoDB.DocumentClient();
                 
                 exports.handler = async function (event, context) {
+                  try {
+                    await ddb
+                      .put({
+                        TableName: process.env.boardTable,
+                        Item: {
+                          coordinate: event.requestContext.connectionId,
+                          color: JSON.parse(event.body).color,
+                          user: JSON.parse(event.body).user,
+                          time: Date.now(),
+                        },
+                      })
+                      .promise();
+                  } catch (err) {
+                    return {
+                      statusCode: 500,
+                    };
+                  }
+
                   let connections;
                   try {
                     connections = await ddb.scan({ TableName: process.env.table }).promise();
@@ -229,7 +289,7 @@ Resources:
                     if (connectionId !== event.requestContext.connectionId) {
                       try {
                         await callbackAPI
-                          .postToConnection({ ConnectionId: connectionId, Data: message })
+                          .postToConnection({ data: message })
                           .promise();
                       } catch (e) {
                         console.log(e);
@@ -256,6 +316,8 @@ Resources:
         Variables:
           table:
             Ref: ConnectionsTable8000B8A1
+          boardTable:
+            Ref: BoardTable
       Handler: index.handler
       Runtime: nodejs16.x
     DependsOn:
