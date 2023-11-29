@@ -87,24 +87,24 @@ showBorder.addEventListener('change', function () {
 });
 
 function connectWebSocket() {
-  // socket = new WebSocket('ws://localhost:8080');
+  socket = new WebSocket('ws://localhost:8080');
 
-  // socket.addEventListener('open', () => {
-  //     initializeCanvas();
-  // });
+  socket.addEventListener('open', () => {
+      initializeCanvas();
+  });
 
-  // socket.addEventListener('error', () => {
-  //     const errorMessage = document.querySelector('.error-message');
-  //     errorMessage.style.display = 'block';
-  //     errorMessage.textContent = 'Failed to connect to server';
-  // });
+  socket.addEventListener('error', () => {
+      const errorMessage = document.querySelector('.error-message');
+      errorMessage.style.display = 'block';
+      errorMessage.textContent = 'Failed to connect to server';
+  });
 
   let doAction = initializeCanvas;
 
-  // socket.addEventListener('message', (event) => {
-  //   const data = JSON.parse(event.data);
-  //   doAction(data);
-  // });
+  socket.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data);
+    doAction(data);
+  });
 
   const dummyData = {}
   for (let i = 0; i < 200; i++) {
