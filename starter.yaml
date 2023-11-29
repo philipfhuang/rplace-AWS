@@ -442,9 +442,9 @@ Resources:
   redis:
     Type: AWS::ElastiCache::CacheCluster
     Properties:
-      AutoMinorVersionUpgrade: Boolean
-      AZMode: String
-      CacheNodeType: String
+      AutoMinorVersionUpgrade: yes
+      AZMode: cross-az
+      CacheNodeType: cache.t2.micro
       CacheParameterGroupName: String
       CacheSecurityGroupNames:
         - String
