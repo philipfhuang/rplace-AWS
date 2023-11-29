@@ -31,78 +31,90 @@ const startClerk = async () => {
 };
 
 
-function initializeCanvas() {
-    for (let i = 0; i < 200; i++) {
-        for (let j = 0; j < 400; j++) {
-            const pixel = document.createElement('div');
-            pixel.classList.add('pixel');
-            pixel.classList.add('pixelBorder');
-            pixel.setAttribute('data-x', i);
-            pixel.setAttribute('data-y', j);
-            canvas.appendChild(pixel);
-        }
+function initializeCanvas(data) {
+  for (let i = 0; i < 200; i++) {
+    for (let j = 0; j < 400; j++) {
+      const pixel = document.createElement('div');
+      pixel.classList.add('pixel');
+      pixel.classList.add('pixelBorder');
+      pixel.setAttribute('data-x', i);
+      pixel.setAttribute('data-y', j);
+      pixel.setAttribute('data-time', '0');
+      pixel.style.backgroundColor = data[`${i},${j}`].color;
+      pixel.addEventListener('click', handlePixelClick);
+      canvas.appendChild(pixel);
     }
-
-    const pixels = document.querySelectorAll('.pixel');
-    pixels.forEach(pixel => {
-        pixel.addEventListener('click', handlePixelClick);
-    });
+  }
+  doAction = updateCanvas;
 }
 
-function updateCanvas(receivedData) {
-    const pixel = document.querySelector(`[data-x="${receivedData.x}"][data-y="${receivedData.y}"]`);
-    pixel.style.backgroundColor = receivedData.color;
+function updateCanvas(data) {
+  const pixel = document.querySelector(`.pixel[data-x="${data.x}"][data-y="${data.y}"]`);
+  if (pixel.dataset.time >= data.time) return;
+  pixel.style.backgroundColor = data.color;
+  pixel.dataset.time = data.time;
 }
 
 function handlePixelClick(event) {
-    if (!Clerk.user) {
-        Clerk.openSignIn()
-        return;
-    }
-    const pixel = event.target;
-    pixel.style.backgroundColor = currentColor;
-    const pixelData = {
-        x: pixel.dataset.x,
-        y: pixel.dataset.y,
-        color: currentColor,
-        user: Clerk.user.id,
-    };
-    socket.send(JSON.stringify(pixelData));
+  if (!Clerk.user) {
+    Clerk.openSignIn()
+    return;
+  }
+  const pixel = event.target;
+  pixel.style.backgroundColor = currentColor;
+  const pixelData = {
+    x: pixel.dataset.x,
+    y: pixel.dataset.y,
+    color: currentColor,
+    user: Clerk.user.id,
+  };
+  socket.send(JSON.stringify({ "action": "sendmessage", "message": pixelData }));
 }
 
 colorPicker.addEventListener('input', function () {
-    currentColor = colorPicker.value;
+  currentColor = colorPicker.value;
 });
 
 showBorder.addEventListener('change', function () {
-    const pixels = document.querySelectorAll('.pixel');
-    pixels.forEach(pixel => {
-        if (showBorder.checked) {
-            pixel.classList.add('pixelBorder');
-        } else {
-            pixel.classList.remove('pixelBorder');
-        }
-    });
+  const pixels = document.querySelectorAll('.pixel');
+  pixels.forEach(pixel => {
+    if (showBorder.checked) {
+      pixel.classList.add('pixelBorder');
+    } else {
+      pixel.classList.remove('pixelBorder');
+    }
+  });
 });
 
 function connectWebSocket() {
-    // socket = new WebSocket('ws://localhost:8080');
+  // socket = new WebSocket('ws://localhost:8080');
 
-    // socket.addEventListener('open', () => {
-    //     initializeCanvas();
-    // });
+  // socket.addEventListener('open', () => {
+  //     initializeCanvas();
+  // });
 
-    // socket.addEventListener('error', () => {
-    //     const errorMessage = document.querySelector('.error-message');
-    //     errorMessage.style.display = 'block';
-    //     errorMessage.textContent = 'Failed to connect to server';
-    // });
+  // socket.addEventListener('error', () => {
+  //     const errorMessage = document.querySelector('.error-message');
+  //     errorMessage.style.display = 'block';
+  //     errorMessage.textContent = 'Failed to connect to server';
+  // });
 
-    // socket.addEventListener('message', (event) => {
-    //     const receivedData = JSON.parse(event.data);
-    //     updateCanvas(receivedData);
-    // });
-    initializeCanvas();
+  let doAction = initializeCanvas;
+
+  // socket.addEventListener('message', (event) => {
+  //   const data = JSON.parse(event.data);
+  //   doAction(data);
+  // });
+
+  const dummyData = {}
+  for (let i = 0; i < 200; i++) {
+    for (let j = 0; j < 400; j++) {
+      dummyData[`${i},${j}`] = {
+        color: 'white',
+      }
+    }
+  }
+  initializeCanvas(dummyData);
 }
 
 
