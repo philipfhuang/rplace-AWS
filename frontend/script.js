@@ -87,7 +87,7 @@ showBorder.addEventListener('change', function () {
 });
 
 function connectWebSocket() {
-  socket = new WebSocket('ws://localhost:8080');
+  socket = new WebSocket('wss://39h7sobph3.execute-api.us-east-2.amazonaws.com/production/');
 
   socket.addEventListener('open', () => {
       initializeCanvas();
