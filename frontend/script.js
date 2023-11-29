@@ -39,7 +39,7 @@ function initializeCanvas(data) {
       pixel.classList.add('pixelBorder');
       pixel.setAttribute('data-x', i);
       pixel.setAttribute('data-y', j);
-      pixel.setAttribute('data-time', '0');
+      pixel.setAttribute('data-time', data[`${i},${j}`]?.time || 0);
       pixel.style.backgroundColor = data[`${i},${j}`].color;
       pixel.addEventListener('click', handlePixelClick);
       canvas.appendChild(pixel);
