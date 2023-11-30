@@ -692,4 +692,42 @@ Resources:
         Version: "2012-10-17"
       PolicyName: manageConnections7F91357B
       Roles:
+<<<<<<< HEAD
         - Ref: SendMessageHandlerServiceRole5F523417
+  redis:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      AutoMinorVersionUpgrade: yes
+      AZMode: cross-az
+      CacheNodeType: cache.t2.micro
+      CacheParameterGroupName: String
+      CacheSecurityGroupNames:
+        - String
+      CacheSubnetGroupName: String
+      ClusterName: String
+      Engine: String
+      EngineVersion: String
+      IpDiscovery: String
+      LogDeliveryConfigurations:
+        - LogDeliveryConfigurationRequest
+      NetworkType: String
+      NotificationTopicArn: String
+      NumCacheNodes: Integer
+      Port: Integer
+      PreferredAvailabilityZone: String
+      PreferredAvailabilityZones:
+        - String
+      PreferredMaintenanceWindow: String
+      SnapshotArns:
+        - String
+      SnapshotName: String
+      SnapshotRetentionLimit: Integer
+      SnapshotWindow: String
+      Tags:
+        - Tag
+      TransitEncryptionEnabled: Boolean
+      VpcSecurityGroupIds:
+        - String
+=======
+        - Ref: SendMessageHandlerServiceRole5F523417
+>>>>>>> b571b3f (edit cloudformation starter yml with redis & api gateway)
