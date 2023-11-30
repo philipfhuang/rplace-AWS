@@ -1,13 +1,21 @@
 Resources:
-  redis:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: My security group
+      GroupName: r-replace-security-group
+  ElasticacheCluster:
     Type: AWS::ElastiCache::CacheCluster
     Properties:
       AutoMinorVersionUpgrade: yes
-      AZMode: cross-az
       CacheNodeType: cache.t2.micro
-      ClusterName: redis
+      ClusterName: redisCluster
       Engine: redis
       NumCacheNodes: 1
+      VpcSecurityGroupIds:
+        - !GetAtt
+          - SecurityGroup
+          - GroupId
   ConnectionsTable8000B8A1:
     Type: AWS::DynamoDB::Table
     Properties:
