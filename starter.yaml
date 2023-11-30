@@ -71,7 +71,6 @@ Resources:
               - dynamodb:UpdateItem
               - dynamodb:DeleteItem
               - dynamodb:DescribeTable
-              - dynamodb:Scan
             Effect: Allow
             Resource:
               - Fn::GetAtt:
@@ -109,18 +108,8 @@ Resources:
                       message: `fail to conncet to connection table with error: ${err} with context: ${JSON.stringify(event)}`,
                     };
                   }
-                  let board;
-                  try {
-                    board = await ddb.scan({ TableName: process.env.boardTable }).promise();
-                  } catch (err) {
-                    return {
-                      statusCode: 500,
-                      message: `fail to conncet to board table with error: ${err}`
-                    };
-                  }
                   return {
                     statusCode: 200,
-                    body: JSON.stringify(board),
                   };
                 };
       Role:
@@ -243,7 +232,6 @@ Resources:
               - dynamodb:Scan
               - dynamodb:ConditionCheckItem
               - dynamodb:DescribeTable
-              - dynamodb:Scan
             Effect: Allow
             Resource:
               - Fn::GetAtt:
@@ -267,14 +255,14 @@ Resources:
                 
                 exports.handler = async function (event, context) {
                   try {
-                    const body = JSON.parse(event.body);
+                    const message = JSON.parse(event.body).message;
                     await ddb
                       .put({
                         TableName: process.env.boardTable,
                         Item: {
-                          coordinate: `${body.x},${body.y}`,
-                          color: body.color,
-                          user: body.user,
+                          coordinate: `${message.x},${message.y}`,
+                          color: message.color,
+                          user: message.user,
                           time: Date.now(),
                         },
                       })
@@ -360,6 +348,20 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:DescribeTable
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - BoardTable
+                  - Arn
+              - Ref: AWS::NoValue
           - Action: execute-api:ManageConnections
             Effect: Allow
             Resource:
@@ -414,13 +416,22 @@ Resources:
                   }
                 
                   connectionInfo.connectionID = connectionId;
+
+                  const ddb = new AWS.DynamoDB.DocumentClient();
+                  let board;
+                  try {
+                    board = await ddb.scan({ TableName: process.env.boardTable }).promise();
+                  } catch (err) {
+                    return {
+                      statusCode: 500,
+                      message: `fail to conncet to board table with error: ${err}`
+                    };
+                  }
                 
                   await callbackAPI
                     .postToConnection({
                       ConnectionId: event.requestContext.connectionId,
-                      Data:
-                        'Use the sendmessage route to send a message. Your info:' +
-                        JSON.stringify(connectionInfo),
+                      Data: JSON.stringify(board),
                     })
                     .promise();
                 
@@ -432,6 +443,10 @@ Resources:
         Fn::GetAtt:
           - DefaultHandlerServiceRoleDF00569C
           - Arn
+      Environment:
+        Variables:
+          boardTable:
+            Ref: BoardTable
       Handler: index.handler
       Runtime: nodejs16.x
     DependsOn:
