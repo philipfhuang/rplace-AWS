@@ -71,10 +71,14 @@ Resources:
               - dynamodb:UpdateItem
               - dynamodb:DeleteItem
               - dynamodb:DescribeTable
+              - dynamodb:Scan
             Effect: Allow
             Resource:
               - Fn::GetAtt:
                   - ConnectionsTable8000B8A1
+                  - Arn
+              - Fn::GetAtt:
+                  - BoardTable
                   - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
@@ -89,6 +93,7 @@ Resources:
           const AWS = require('aws-sdk');
                 const ddb = new AWS.DynamoDB.DocumentClient();
                 exports.handler = async function (event, context) {
+                  console.log(JSON.stringify(event));
                   try {
                     await ddb
                       .put({
@@ -101,6 +106,7 @@ Resources:
                   } catch (err) {
                     return {
                       statusCode: 500,
+                      message: `fail to conncet to connection table with error: ${err} with context: ${JSON.stringify(event)}`,
                     };
                   }
                   let board;
@@ -109,28 +115,12 @@ Resources:
                   } catch (err) {
                     return {
                       statusCode: 500,
-                    };
-                  }
-                  const callbackAPI = new AWS.ApiGatewayManagementApi({
-                    apiVersion: '2018-11-29',
-                    endpoint:
-                      event.requestContext.domainName + '/' + event.requestContext.stage,
-                  });
-                  try {
-                    await callbackAPI
-                      .postToConnection({
-                        ConnectionId: event.requestContext.connectionId,
-                        Data: JSON.stringify(board),
-                      })
-                      .promise();
-                  } catch (e) {
-                    console.log(e);
-                    return {
-                      statusCode: 500,
+                      message: `fail to conncet to board table with error: ${err}`
                     };
                   }
                   return {
                     statusCode: 200,
+                    body: JSON.stringify(board),
                   };
                 };
       Role:
@@ -175,10 +165,14 @@ Resources:
               - dynamodb:UpdateItem
               - dynamodb:DeleteItem
               - dynamodb:DescribeTable
+              - dynamodb:Scan
             Effect: Allow
             Resource:
               - Fn::GetAtt:
                   - ConnectionsTable8000B8A1
+                  - Arn
+              - Fn::GetAtt:
+                  - BoardTable
                   - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
@@ -249,10 +243,14 @@ Resources:
               - dynamodb:Scan
               - dynamodb:ConditionCheckItem
               - dynamodb:DescribeTable
+              - dynamodb:Scan
             Effect: Allow
             Resource:
               - Fn::GetAtt:
                   - ConnectionsTable8000B8A1
+                  - Arn
+              - Fn::GetAtt:
+                  - BoardTable
                   - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
