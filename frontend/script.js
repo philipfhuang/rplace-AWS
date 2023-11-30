@@ -1,8 +1,10 @@
 const canvas = document.querySelector('.canvas');
 const colorPicker = document.getElementById('colorPicker');
 const showBorder = document.getElementById('showBorder');
+const dial = document.getElementById('dial');
 let currentColor = colorPicker.value;
 let socket;
+var time;
 const publishableKey = "pk_test_a25vd2luZy1jb3JnaS00MS5jbGVyay5hY2NvdW50cy5kZXYk"; // <- Add Publishable Key here
 
 const startClerk = async () => {
@@ -60,6 +62,10 @@ function handlePixelClick(event) {
     Clerk.openSignIn()
     return;
   }
+  if (time && Date.now() - time < 300000) {
+    dial.showModal();
+    return;
+  }
   const pixel = event.target;
   pixel.style.backgroundColor = currentColor;
   const pixelData = {
@@ -69,6 +75,7 @@ function handlePixelClick(event) {
     user: Clerk.user.id,
   };
   socket.send(JSON.stringify({ "action": "sendmessage", "message": pixelData }));
+  time = Date.now();
 }
 
 colorPicker.addEventListener('input', function () {
