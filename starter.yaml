@@ -2,37 +2,12 @@ Resources:
   redis:
     Type: AWS::ElastiCache::CacheCluster
     Properties:
-      AutoMinorVersionUpgrade: Boolean
-      AZMode: String
-      CacheNodeType: String
-      CacheParameterGroupName: String
-      CacheSecurityGroupNames:
-        - String
-      CacheSubnetGroupName: String
-      ClusterName: String
-      Engine: String
-      EngineVersion: String
-      IpDiscovery: String
-      LogDeliveryConfigurations:
-        - LogDeliveryConfigurationRequest
-      NetworkType: String
-      NotificationTopicArn: String
-      NumCacheNodes: Integer
-      Port: Integer
-      PreferredAvailabilityZone: String
-      PreferredAvailabilityZones:
-        - String
-      PreferredMaintenanceWindow: String
-      SnapshotArns:
-        - String
-      SnapshotName: String
-      SnapshotRetentionLimit: Integer
-      SnapshotWindow: String
-      Tags:
-        - Tag
-      TransitEncryptionEnabled: Boolean
-      VpcSecurityGroupIds:
-        - String
+      AutoMinorVersionUpgrade: yes
+      AZMode: cross-az
+      CacheNodeType: cache.t2.micro
+      ClusterName: redis
+      Engine: redis
+      NumCacheNodes: 1
   ConnectionsTable8000B8A1:
     Type: AWS::DynamoDB::Table
     Properties:
