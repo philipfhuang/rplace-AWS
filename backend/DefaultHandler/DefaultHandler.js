@@ -26,6 +26,9 @@ exports.handler = async function (event, context) {
     port: process.env.redisClusterPort,
   });
 
+  console.log('redisClient host: ', process.env.redisClusterAddr);
+  console.log('redisClient port: ', process.env.redisClusterPort);
+
   let board;
   try {
     // Check if the board exists
