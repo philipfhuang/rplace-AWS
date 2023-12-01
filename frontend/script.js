@@ -84,7 +84,7 @@ function handleCanvasClick(event) {
 }
 
 function connectWebSocket() {
-    socket = new WebSocket('wss://ksp6rp4kq5.execute-api.us-east-2.amazonaws.com/production/');
+    socket = new WebSocket('wss://weqb8hftgl.execute-api.us-east-2.amazonaws.com/production/');
 
     socket.addEventListener('open', (event) => {
         socket.send(JSON.stringify({ "action": "initialize" }));
