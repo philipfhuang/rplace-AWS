@@ -76,9 +76,6 @@ Resources:
               - Fn::GetAtt:
                   - ConnectionsTable8000B8A1
                   - Arn
-              - Fn::GetAtt:
-                  - BoardTable
-                  - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
       PolicyName: ConnectHandlerServiceRoleDefaultPolicy7DE94863
@@ -120,8 +117,6 @@ Resources:
         Variables:
           table:
             Ref: ConnectionsTable8000B8A1
-          boardTable:
-            Ref: BoardTable
       Handler: index.handler
       Runtime: nodejs16.x
     DependsOn:
@@ -159,9 +154,6 @@ Resources:
             Resource:
               - Fn::GetAtt:
                   - ConnectionsTable8000B8A1
-                  - Arn
-              - Fn::GetAtt:
-                  - BoardTable
                   - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
