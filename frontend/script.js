@@ -83,6 +83,15 @@ function handleCanvasClick(event) {
     time = Date.now();
 }
 
+function displayError() {
+    const errorMessage = document.querySelector('.error-message');
+    const error = document.querySelector('#error');
+    loading.close();
+    error.showModal();
+    errorMessage.style.display = 'block';
+    errorMessage.textContent = 'Failed to connect to server';
+}
+
 function connectWebSocket() {
     socket = new WebSocket('wss://weqb8hftgl.execute-api.us-east-2.amazonaws.com/production/');
 
@@ -91,16 +100,15 @@ function connectWebSocket() {
     });
 
     socket.addEventListener('error', () => {
-        const errorMessage = document.querySelector('.error-message');
-        const error = document.querySelector('#error');
-        loading.close();
-        error.showModal();
-        errorMessage.style.display = 'block';
-        errorMessage.textContent = 'Failed to connect to server';
+        displayError();
     });
 
     socket.addEventListener('message', (event) => {
         if (!event.data) return;
+        if (JSON.parse(event.data).message == 'Internal server error') {
+            displayError();
+            return;
+        }
         const data = JSON.parse(event.data);
         doAction(data);
     });
