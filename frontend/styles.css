@@ -3,7 +3,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100vh;
+    width: 2050px;
     margin: 0;
 }
 
@@ -53,23 +53,12 @@ button:hover {
     align-items: center;
 }
 
-.canvas {
-    display: grid;
-    grid-template-columns: repeat(400, 5px);
-    grid-template-rows: repeat(200, 5px);
-}
-
-.pixel {
-    width: 5px;
-    height: 5px;
-}
-
-.pixelBorder {
-    border: 1px solid #ccc;
-}
-
-.pixel:hover {
-    border-color: black;
+#canvas {
+    border: solid 1px #ccc;
+    cursor: crosshair;
+    width: 2000px;
+    height: 2000px;
+    margin: auto;
 }
 
 #colorPicker {

@@ -1,7 +1,10 @@
-const canvas = document.querySelector('.canvas');
+const canvas = document.querySelector('#canvas');
+const context = canvas.getContext('2d');
 const colorPicker = document.getElementById('colorPicker');
 const showBorder = document.getElementById('showBorder');
 const dial = document.getElementById('dial');
+const loading = document.getElementById('loading');
+loading.showModal();
 let currentColor = colorPicker.value;
 let socket;
 var time;
@@ -32,35 +35,30 @@ const startClerk = async () => {
     }
 };
 
+function drawPixel(x, y, color) {
+    console.log(x, y, color);
+    context.fillStyle = color;
+    context.fillRect(x, y, 1, 1);
+}
 
 function initializeCanvas(data) {
     data = data.Items;
-    for (let i = 0; i < 200; i++) {
-        for (let j = 0; j < 400; j++) {
-            const pixel = document.createElement('div');
-            pixel.classList.add('pixel');
-            pixel.classList.add('pixelBorder');
-            pixel.setAttribute('data-x', i);
-            pixel.setAttribute('data-y', j);
-
-            const currentData = data.find(item => item.coordinate === `${i},${j}`);
-            pixel.setAttribute('data-time', currentData ? currentData.time : 0);
-            pixel.style.backgroundColor = currentData ? currentData.color : 'white';
-            pixel.addEventListener('click', handlePixelClick);
-            canvas.appendChild(pixel);
-        }
-    }
+    data.forEach(pixel => {
+        const { coordinate, color } = pixel;
+        const [x, y] = coordinate.split(',').map(Number);
+        drawPixel(x, y, color);
+    });
+    loading.close();
     doAction = updateCanvas;
 }
 
 function updateCanvas(data) {
-    const pixel = document.querySelector(`.pixel[data-x="${data.x}"][data-y="${data.y}"]`);
-    if (pixel.dataset.time >= data.time) return;
-    pixel.style.backgroundColor = data.color;
-    pixel.dataset.time = data.time;
+    const { x, y, color, time } = data;
+    const pixelData = context.getImageData(x, y, 1, 1).data;
+    drawPixel(x, y, color);
 }
 
-function handlePixelClick(event) {
+function handleCanvasClick(event) {
     if (!Clerk.user) {
         Clerk.openSignIn()
         return;
@@ -69,32 +67,21 @@ function handlePixelClick(event) {
         dial.showModal();
         return;
     }
-    const pixel = event.target;
-    pixel.style.backgroundColor = currentColor;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((event.clientX - rect.left) / 2);
+    const y = Math.floor((event.clientY - rect.top) / 2);
+    drawPixel(x, y, currentColor);
+
     const pixelData = {
-        x: pixel.dataset.x,
-        y: pixel.dataset.y,
+        x: x,
+        y: y,
         color: currentColor,
         user: Clerk.user.id,
     };
     socket.send(JSON.stringify({ "action": "sendmessage", "message": pixelData }));
     time = Date.now();
 }
-
-colorPicker.addEventListener('input', function () {
-    currentColor = colorPicker.value;
-});
-
-showBorder.addEventListener('change', function () {
-    const pixels = document.querySelectorAll('.pixel');
-    pixels.forEach(pixel => {
-        if (showBorder.checked) {
-            pixel.classList.add('pixelBorder');
-        } else {
-            pixel.classList.remove('pixelBorder');
-        }
-    });
-});
 
 function connectWebSocket() {
     socket = new WebSocket('wss://ksp6rp4kq5.execute-api.us-east-2.amazonaws.com/production/');
@@ -105,6 +92,9 @@ function connectWebSocket() {
 
     socket.addEventListener('error', () => {
         const errorMessage = document.querySelector('.error-message');
+        const error = document.querySelector('#error');
+        loading.close();
+        error.showModal();
         errorMessage.style.display = 'block';
         errorMessage.textContent = 'Failed to connect to server';
     });
@@ -115,7 +105,6 @@ function connectWebSocket() {
         doAction(data);
     });
 }
-
 
 (() => {
     const script = document.createElement("script");
@@ -129,6 +118,12 @@ function connectWebSocket() {
     });
     document.body.appendChild(script);
 })();
+
+colorPicker.addEventListener('input', function () {
+    currentColor = colorPicker.value;
+});
+
+canvas.addEventListener('click', handleCanvasClick);
 
 var doAction = initializeCanvas;
 connectWebSocket();
