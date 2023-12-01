@@ -16,7 +16,7 @@ Resources:
         - !GetAtt
           - SecurityGroup
           - GroupId
-  ConnectionsTable8000B8A1:
+  ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
       KeySchema:
@@ -44,7 +44,7 @@ Resources:
         WriteCapacityUnits: 10
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
-  ConnectHandlerServiceRole7E4A9B1F:
+  ConnectHandlerServiceRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -60,7 +60,7 @@ Resources:
             - - "arn:"
               - Ref: AWS::Partition
               - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-  ConnectHandlerServiceRoleDefaultPolicy7DE94863:
+  ConnectHandlerServiceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -74,14 +74,14 @@ Resources:
             Effect: Allow
             Resource:
               - Fn::GetAtt:
-                  - ConnectionsTable8000B8A1
+                  - ConnectionsTable
                   - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
-      PolicyName: ConnectHandlerServiceRoleDefaultPolicy7DE94863
+      PolicyName: ConnectHandlerServiceRoleDefaultPolicy
       Roles:
-        - Ref: ConnectHandlerServiceRole7E4A9B1F
-  ConnectHandler2FFD52D8:
+        - Ref: ConnectHandlerServiceRole
+  ConnectHandler:
     Type: AWS::Lambda::Function
     Properties:
       Code:
@@ -111,18 +111,18 @@ Resources:
                 };
       Role:
         Fn::GetAtt:
-          - ConnectHandlerServiceRole7E4A9B1F
+          - ConnectHandlerServiceRole
           - Arn
       Environment:
         Variables:
           table:
-            Ref: ConnectionsTable8000B8A1
+            Ref: ConnectionsTable
       Handler: index.handler
       Runtime: nodejs16.x
     DependsOn:
-      - ConnectHandlerServiceRoleDefaultPolicy7DE94863
-      - ConnectHandlerServiceRole7E4A9B1F
-  DisconnectHandlerServiceRoleE54F14F9:
+      - ConnectHandlerServiceRoleDefaultPolicy
+      - ConnectHandlerServiceRole
+  DisconnectHandlerServiceRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -138,7 +138,7 @@ Resources:
             - - "arn:"
               - Ref: AWS::Partition
               - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-  DisconnectHandlerServiceRoleDefaultPolicy1800B9E5:
+  DisconnectHandlerServiceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -153,14 +153,14 @@ Resources:
             Effect: Allow
             Resource:
               - Fn::GetAtt:
-                  - ConnectionsTable8000B8A1
+                  - ConnectionsTable
                   - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
-      PolicyName: DisconnectHandlerServiceRoleDefaultPolicy1800B9E5
+      PolicyName: DisconnectHandlerServiceRoleDefaultPolicy
       Roles:
-        - Ref: DisconnectHandlerServiceRoleE54F14F9
-  DisconnectHandlerCB7ED6F7:
+        - Ref: DisconnectHandlerServiceRole
+  DisconnectHandler:
     Type: AWS::Lambda::Function
     Properties:
       Code:
@@ -183,18 +183,18 @@ Resources:
                 };
       Role:
         Fn::GetAtt:
-          - DisconnectHandlerServiceRoleE54F14F9
+          - DisconnectHandlerServiceRole
           - Arn
       Environment:
         Variables:
           table:
-            Ref: ConnectionsTable8000B8A1
+            Ref: ConnectionsTable
       Handler: index.handler
       Runtime: nodejs16.x
     DependsOn:
-      - DisconnectHandlerServiceRoleDefaultPolicy1800B9E5
-      - DisconnectHandlerServiceRoleE54F14F9
-  SendMessageHandlerServiceRole5F523417:
+      - DisconnectHandlerServiceRoleDefaultPolicy
+      - DisconnectHandlerServiceRole
+  SendMessageHandlerServiceRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -210,7 +210,7 @@ Resources:
             - - "arn:"
               - Ref: AWS::Partition
               - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-  SendMessageHandlerServiceRoleDefaultPolicyF9D10585:
+  SendMessageHandlerServiceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -229,138 +229,139 @@ Resources:
             Effect: Allow
             Resource:
               - Fn::GetAtt:
-                  - ConnectionsTable8000B8A1
+                  - ConnectionsTable
                   - Arn
               - Fn::GetAtt:
                   - BoardTable
                   - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
-      PolicyName: SendMessageHandlerServiceRoleDefaultPolicyF9D10585
+      PolicyName: SendMessageHandlerServiceRoleDefaultPolicy
       Roles:
-        - Ref: SendMessageHandlerServiceRole5F523417
-  SendMessageHandlerDCEABF13:
+        - Ref: SendMessageHandlerServiceRole
+  SendMessageHandler:
     Type: AWS::Lambda::Function
     Properties:
       Code:
         ZipFile: |-
           const AWS = require('aws-sdk');
+            const AWS = require('aws-sdk');
             const ddb = new AWS.DynamoDB.DocumentClient();
             const redis = require("redis");
             
             exports.handler = async function (event, context) {
-            const message = JSON.parse(event.body).message;
-            try {
-            await ddb
-            .put({
-          TableName: process.env.boardTable,
-          Item: {
-            coordinate: `${message.x},${message.y}`,
-            color: message.color,
-            user: message.user,
-            time: Date.now(),
-          },
-          })
-            .promise();
-          } catch (err) {
-            return {
-          statusCode: 500,
-          message: `fail to connect board db with error: ${err}`
-          };
-          }
+              const message = JSON.parse(event.body).message;
+              try {
+                await ddb
+                  .put({
+                    TableName: process.env.boardTable,
+                    Item: {
+                      coordinate: `${message.x},${message.y}`,
+                      color: message.color,
+                      user: message.user,
+                      time: Date.now(),
+                    },
+                  })
+                  .promise();
+              } catch (err) {
+                return {
+                  statusCode: 500,
+                  message: `fail to connect board db with error: ${err}`
+                };
+              }
             
-            const redisClient = redis.createClient({
-          host: process.env.redisClusterAddr,
-          port: process.env.redisClusterPort,
-          });
+              const redisClient = redis.createClient({
+                host: process.env.redisClusterAddr,
+                port: process.env.redisClusterPort,
+              });
             
-            try {
-            // Check if the board exists
-            const boardExists = await new Promise((resolve, reject) => {
-            redisClient.exists('board', (err, data) => {
-            if (err) reject(err);
-            else resolve(data);
-            });
-          });
+              try {
+                // Check if the board exists
+                const boardExists = await new Promise((resolve, reject) => {
+                  redisClient.exists('board', (err, data) => {
+                    if (err) reject(err);
+                    else resolve(data);
+                  });
+                });
             
-            // If the board doesn't exist, create a white board
-            if (!boardExists) {
+                // If the board doesn't exist, create a white board
+                if (!boardExists) {
             
-            const whitePixel = "FFFFFF";
-            const totalPixels = 1000 * 1000;
-            const whiteBoard = whitePixel.repeat(totalPixels);
+                  const whitePixel = "FFFFFF";
+                  const totalPixels = 1000 * 1000;
+                  const whiteBoard = whitePixel.repeat(totalPixels);
             
-            await new Promise((resolve, reject) => {
-            redisClient.set('board', whiteBoard, (err, data) => {
-            if (err) reject(err);
-            else resolve(data);
-            });
-            });
-          }
-            // Get rid of the # in the color
-            let color = message.color.slice(1);
-            const offset = (message.x + message.y * 1000) * 6;
+                  await new Promise((resolve, reject) => {
+                    redisClient.set('board', whiteBoard, (err, data) => {
+                      if (err) reject(err);
+                      else resolve(data);
+                    });
+                  });
+                }
+                // Get rid of the # in the color
+                let color = message.color.slice(1);
+                const offset = (message.x + message.y * 1000) * 6;
             
-            // Set the color at the offset
-            await new Promise((resolve, reject) => {
-            redisClient.setRange("board", offset, color, (err, data) => {
-            if (err) reject(err);
-            resolve(data);
-            });
-          });
-          
-          } catch (err) {
-            return {
-          statusCode: 500,
-          message: `fail to connect redis cache with error: ${err}`
-          };
-          }
+                // Set the color at the offset
+                await new Promise((resolve, reject) => {
+                  redisClient.setRange("board", offset, color, (err, data) => {
+                    if (err) reject(err);
+                    resolve(data);
+                  });
+                });
             
-            let connections;
-            try {
-          connections = await ddb.scan({ TableName: process.env.table }).promise();
-          } catch (err) {
-            return {
-          statusCode: 500,
-          message: `fail to connect connection db with error: ${err}`
-          };
-          }
-            const callbackAPI = new AWS.ApiGatewayManagementApi({
-          apiVersion: '2018-11-29',
-          endpoint:
-            event.requestContext.domainName + '/' + event.requestContext.stage,
-          });
+              } catch (err) {
+                return {
+                  statusCode: 500,
+                  message: `fail to connect redis cache with error: ${err}`
+                };
+              }
             
-            const sendMessages = connections.Items.map(async ({ connectionId }) => {
-            try {
-            await callbackAPI
-          .postToConnection({ ConnectionId: connectionId, Data: JSON.stringify(message) })
-            .promise();
-          } catch (e) {
-            console.log(e);
-          }
-          });
+              let connections;
+              try {
+                connections = await ddb.scan({ TableName: process.env.table }).promise();
+              } catch (err) {
+                return {
+                  statusCode: 500,
+                  message: `fail to connect connection db with error: ${err}`
+                };
+              }
+              const callbackAPI = new AWS.ApiGatewayManagementApi({
+                apiVersion: '2018-11-29',
+                endpoint:
+                  event.requestContext.domainName + '/' + event.requestContext.stage,
+              });
             
-            try {
-            await Promise.all(sendMessages);
-          } catch (e) {
-            console.log(e);
-            return {
-          statusCode: 500,
-          message: `cant send message with error: ${err}`
-          };
-          }
-          
-          return { statusCode: 200 };
-          };
+              const sendMessages = connections.Items.map(async ({ connectionId }) => {
+                try {
+                  await callbackAPI
+                    .postToConnection({ ConnectionId: connectionId, Data: JSON.stringify(message) })
+                    .promise();
+                } catch (e) {
+                  console.log(e);
+                }
+              });
+            
+              try {
+                await Promise.all(sendMessages);
+              } catch (e) {
+                console.log(e);
+                return {
+                  statusCode: 500,
+                  message: `cant send message with error: ${err}`
+                };
+              }
+            
+              return { statusCode: 200 };
+            };
       Role:
         Fn::GetAtt:
-          - SendMessageHandlerServiceRole5F523417
+          - SendMessageHandlerServiceRole
           - Arn
       Environment:
         Variables:
           table:
-            Ref: ConnectionsTable8000B8A1
+            Ref: ConnectionsTable
           boardTable:
             Ref: BoardTable
           redisClusterAddr: !GetAtt ElasticacheCluster.RedisEndpoint.Address
@@ -368,9 +369,9 @@ Resources:
       Handler: index.handler
       Runtime: nodejs16.x
     DependsOn:
-      - SendMessageHandlerServiceRoleDefaultPolicyF9D10585
-      - SendMessageHandlerServiceRole5F523417
-  DefaultHandlerServiceRoleDF00569C:
+      - SendMessageHandlerServiceRoleDefaultPolicy
+      - SendMessageHandlerServiceRole
+  DefaultHandlerServiceRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -386,7 +387,7 @@ Resources:
             - - "arn:"
               - Ref: AWS::Partition
               - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-  DefaultHandlerServiceRoleDefaultPolicy2F57C32F:
+  DefaultHandlerServiceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -430,10 +431,10 @@ Resources:
                   - Ref: WebsocketApi
                   - /production/GET/@connections/*
         Version: "2012-10-17"
-      PolicyName: DefaultHandlerServiceRoleDefaultPolicy2F57C32F
+      PolicyName: DefaultHandlerServiceRoleDefaultPolicy
       Roles:
-        - Ref: DefaultHandlerServiceRoleDF00569C
-  DefaultHandler604DF7AC:
+        - Ref: DefaultHandlerServiceRole
+  DefaultHandler:
     Type: AWS::Lambda::Function
     Properties:
       Code:
@@ -484,7 +485,7 @@ Resources:
                 };
       Role:
         Fn::GetAtt:
-          - DefaultHandlerServiceRoleDF00569C
+          - DefaultHandlerServiceRole
           - Arn
       Environment:
         Variables:
@@ -493,21 +494,21 @@ Resources:
       Handler: index.handler
       Runtime: nodejs16.x
     DependsOn:
-      - DefaultHandlerServiceRoleDefaultPolicy2F57C32F
-      - DefaultHandlerServiceRoleDF00569C
+      - DefaultHandlerServiceRoleDefaultPolicy
+      - DefaultHandlerServiceRole
   WebsocketApi:
     Type: AWS::ApiGatewayV2::Api
     Properties:
       Name: r/place
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: $request.body.action
-  WebsocketconnectRouteConnectIntegrationPermission532DAA0E:
+  WebsocketconnectRouteConnectIntegrationPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-          - ConnectHandler2FFD52D8
+          - ConnectHandler
           - Arn
       Principal: apigateway.amazonaws.com
       SourceArn:
@@ -537,10 +538,10 @@ Resources:
             - Ref: AWS::Region
             - :lambda:path/2015-03-31/functions/
             - Fn::GetAtt:
-                - ConnectHandler2FFD52D8
+                - ConnectHandler
                 - Arn
             - /invocations
-  WebsocketApiconnectRouteB301C11A:
+  WebsocketApiconnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId:
@@ -552,13 +553,13 @@ Resources:
           - ""
           - - integrations/
             - Ref: WebsocketApiconnectRouteConnectIntegration
-  WebsocketApidisconnectRouteDisconnectIntegrationPermissionF888590D:
+  WebsocketApidisconnectRouteDisconnectIntegrationPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-          - DisconnectHandlerCB7ED6F7
+          - DisconnectHandler
           - Arn
       Principal: apigateway.amazonaws.com
       SourceArn:
@@ -573,7 +574,7 @@ Resources:
             - ":"
             - Ref: WebsocketApi
             - /*/*$disconnect
-  WebsocketApidisconnectRouteDisconnectIntegrationC57647DF:
+  WebsocketApidisconnectRouteDisconnectIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId:
@@ -588,10 +589,10 @@ Resources:
             - Ref: AWS::Region
             - :lambda:path/2015-03-31/functions/
             - Fn::GetAtt:
-                - DisconnectHandlerCB7ED6F7
+                - DisconnectHandler
                 - Arn
             - /invocations
-  WebsocketApidisconnectRoute94B476AA:
+  WebsocketApidisconnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId:
@@ -602,14 +603,14 @@ Resources:
         Fn::Join:
           - ""
           - - integrations/
-            - Ref: WebsocketApidisconnectRouteDisconnectIntegrationC57647DF
-  WebsocketApidefaultRouteDefaultIntegrationPermission29D65680:
+            - Ref: WebsocketApidisconnectRouteDisconnectIntegration
+  WebsocketApidefaultRouteDefaultIntegrationPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-          - DefaultHandler604DF7AC
+          - DefaultHandler
           - Arn
       Principal: apigateway.amazonaws.com
       SourceArn:
@@ -624,7 +625,7 @@ Resources:
             - ":"
             - Ref: WebsocketApi
             - /*/*$default
-  WebsocketApidefaultRouteDefaultIntegrationC2D832EC:
+  WebsocketApidefaultRouteDefaultIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId:
@@ -639,10 +640,10 @@ Resources:
             - Ref: AWS::Region
             - :lambda:path/2015-03-31/functions/
             - Fn::GetAtt:
-                - DefaultHandler604DF7AC
+                - DefaultHandler
                 - Arn
             - /invocations
-  WebsocketApidefaultRoute6DF3F372:
+  WebsocketApidefaultRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId:
@@ -653,14 +654,14 @@ Resources:
         Fn::Join:
           - ""
           - - integrations/
-            - Ref: WebsocketApidefaultRouteDefaultIntegrationC2D832EC
-  WebsocketApisendmessageRouteMessageHandlerPermissionA11BA009:
+            - Ref: WebsocketApidefaultRouteDefaultIntegration
+  WebsocketApisendmessageRouteMessageHandlerPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName:
         Fn::GetAtt:
-          - SendMessageHandlerDCEABF13
+          - SendMessageHandler
           - Arn
       Principal: apigateway.amazonaws.com
       SourceArn:
@@ -675,7 +676,7 @@ Resources:
             - ":"
             - Ref: WebsocketApi
             - /*/*sendmessage
-  WebsocketApisendmessageRouteMessageHandlerD0A237F8:
+  WebsocketApisendmessageRouteMessageHandler:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId:
@@ -690,10 +691,10 @@ Resources:
             - Ref: AWS::Region
             - :lambda:path/2015-03-31/functions/
             - Fn::GetAtt:
-                - SendMessageHandlerDCEABF13
+                - SendMessageHandler
                 - Arn
             - /invocations
-  WebsocketApisendmessageRoute6307E1A1:
+  WebsocketApisendmessageRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId:
@@ -704,15 +705,15 @@ Resources:
         Fn::Join:
           - ""
           - - integrations/
-            - Ref: WebsocketApisendmessageRouteMessageHandlerD0A237F8
-  production98A682B9:
+            - Ref: WebsocketApisendmessageRouteMessageHandler
+  production:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
       ApiId:
         Ref: WebsocketApi
       StageName: production
       AutoDeploy: true
-  manageConnections7F91357B:
+  manageConnections:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -729,6 +730,6 @@ Resources:
                   - ":"
                   - "*/*/POST/@connections/*"
         Version: "2012-10-17"
-      PolicyName: manageConnections7F91357B
+      PolicyName: manageConnections
       Roles:
-        - Ref: SendMessageHandlerServiceRole5F523417
+        - Ref: SendMessageHandlerServiceRole
