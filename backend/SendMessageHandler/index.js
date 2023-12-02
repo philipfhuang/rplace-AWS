@@ -4,6 +4,8 @@ const redis = require("redis");
 
 exports.handler = async function (event, context) {
     const message = JSON.parse(event.body).message;
+    console.log('message: ', message);
+
     try {
         await ddb
             .put({
@@ -17,19 +19,20 @@ exports.handler = async function (event, context) {
             })
             .promise();
     } catch (err) {
+        console.log('err: ', err)
         return {
             statusCode: 500,
             message: `fail to connect board db with error: ${err}`
         };
     }
 
-    console.log('redisClient host: ', process.env.redisClusterAddr);
-    console.log('redisClient port: ', process.env.redisClusterPort);
-
     const redisClient = redis.createClient({
         host: process.env.redisClusterAddr,
         port: process.env.redisClusterPort,
     });
+
+    console.log('redisClient host: ', process.env.redisClusterAddr);
+    console.log('redisClient port: ', process.env.redisClusterPort);
 
     await redisClient.connect();
 
@@ -41,6 +44,8 @@ exports.handler = async function (event, context) {
                 else resolve(data);
             });
         });
+
+        console.log('board exists: ', boardExists)
 
         // If the board doesn't exist, create a white board
         if (!boardExists) {
@@ -55,6 +60,7 @@ exports.handler = async function (event, context) {
                     else resolve(data);
                 });
             });
+            console.log('whiteBoard: ', whiteBoard)
         }
         // Get rid of the # in the color
         let color = message.color.slice(1);
@@ -67,6 +73,7 @@ exports.handler = async function (event, context) {
                 resolve(data);
             });
         });
+        console.log('offset: ', offset)
 
     } catch (err) {
         return {

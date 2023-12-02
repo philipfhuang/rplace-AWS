@@ -235,7 +235,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: send-msg-handler-code
-        S3Key: Archive.zip
+        S3Key: index.zip
       Role:
         Fn::GetAtt:
           - SendMessageHandlerServiceRole
@@ -250,6 +250,7 @@ Resources:
           redisClusterPort: !GetAtt ElasticacheCluster.RedisEndpoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
+      Timeout: 60
       VpcConfig:
         SecurityGroupIds:
           - sg-07575d9608f6fcce8
@@ -326,7 +327,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: default-handler-code
-        S3Key: Archive.zip
+        S3Key: index.zip
       Role:
         Fn::GetAtt:
           - DefaultHandlerServiceRole
@@ -339,6 +340,7 @@ Resources:
           redisClusterPort: !GetAtt ElasticacheCluster.RedisEndpoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
+      Timeout: 60
       VpcConfig:
         SecurityGroupIds:
           - sg-07575d9608f6fcce8
