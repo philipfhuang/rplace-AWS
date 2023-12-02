@@ -13,7 +13,7 @@ exports.handler = async function (event, context) {
 
   try {
     connectionInfo = await callbackAPI
-      .getConnection({ConnectionId: event.requestContext.connectionId})
+      .getConnection({ ConnectionId: event.requestContext.connectionId })
       .promise();
   } catch (e) {
     console.log(e);
@@ -28,6 +28,8 @@ exports.handler = async function (event, context) {
 
   console.log('redisClient host: ', process.env.redisClusterAddr);
   console.log('redisClient port: ', process.env.redisClusterPort);
+
+  await redisClient.connect();
 
   let board;
   try {

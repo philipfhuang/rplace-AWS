@@ -23,10 +23,15 @@ exports.handler = async function (event, context) {
         };
     }
 
+    console.log('redisClient host: ', process.env.redisClusterAddr);
+    console.log('redisClient port: ', process.env.redisClusterPort);
+
     const redisClient = redis.createClient({
         host: process.env.redisClusterAddr,
         port: process.env.redisClusterPort,
     });
+
+    await redisClient.connect();
 
     try {
         // Check if the board exists

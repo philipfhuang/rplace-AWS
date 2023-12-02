@@ -244,7 +244,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: send-msg-handler-code
-        S3Key: SendMessageHandler.zip
+        S3Key: Archive.zip
       Role:
         Fn::GetAtt:
           - SendMessageHandlerServiceRole
@@ -330,7 +330,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: default-handler-code
-        S3Key: DefaultHandler.zip
+        S3Key: Archive.zip
       Role:
         Fn::GetAtt:
           - DefaultHandlerServiceRole
