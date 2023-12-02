@@ -106,7 +106,7 @@ exports.handler = async function (event, context) {
         console.log(e);
         return {
             statusCode: 500,
-            message: `cant send message with error: ${err}`
+            message: `cant send message with error: ${e}`
         };
     }
 

@@ -64,6 +64,7 @@ exports.handler = async function (event, context) {
       });
     }
   } catch (err) {
+    console.log('fail to conncet to board table with error: ', err);
     return {
       statusCode: 500,
       message: `fail to conncet to board table with error: ${err}`
