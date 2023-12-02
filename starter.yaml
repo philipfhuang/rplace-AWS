@@ -1,9 +1,4 @@
 Resources:
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: My security group
-      GroupName: r-replace-security-group
   ElasticacheCluster:
     Type: AWS::ElastiCache::CacheCluster
     Properties:
@@ -12,10 +7,8 @@ Resources:
       ClusterName: redisCluster
       Engine: redis
       NumCacheNodes: 1
-      VpcSecurityGroupIds:
-        - !GetAtt
-          - SecurityGroup
-          - GroupId
+      CacheSecurityGroupNames:
+        - default
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
