@@ -226,6 +226,7 @@ Resources:
               - dynamodb:DescribeTable
               - dynamodb:PutItem
               - dynamodb:UpdateItem
+              - elasticache:*
             Effect: Allow
             Resource:
               - Fn::GetAtt:
@@ -291,6 +292,7 @@ Resources:
               - dynamodb:GetItem
               - dynamodb:Scan
               - dynamodb:DescribeTable
+              - elasticache:*
             Effect: Allow
             Resource:
               - Fn::GetAtt:
