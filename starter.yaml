@@ -198,11 +198,8 @@ Resources:
               Service: lambda.amazonaws.com
         Version: "2012-10-17"
       ManagedPolicyArns:
-        - Fn::Join:
-            - ""
-            - - "arn:"
-              - Ref: AWS::Partition
-              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   SendMessageHandlerServiceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -253,6 +250,13 @@ Resources:
           redisClusterPort: !GetAtt ElasticacheCluster.RedisEndpoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-07575d9608f6fcce8
+        SubnetIds:
+          - subnet-0f63bb1c2eb92167a
+          - subnet-07482add44996196f
+          - subnet-0ae6b24bff8b1c85c
     DependsOn:
       - SendMessageHandlerServiceRoleDefaultPolicy
       - SendMessageHandlerServiceRole
@@ -267,11 +271,8 @@ Resources:
               Service: lambda.amazonaws.com
         Version: "2012-10-17"
       ManagedPolicyArns:
-        - Fn::Join:
-            - ""
-            - - "arn:"
-              - Ref: AWS::Partition
-              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   DefaultHandlerServiceRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -338,6 +339,13 @@ Resources:
           redisClusterPort: !GetAtt ElasticacheCluster.RedisEndpoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-07575d9608f6fcce8
+        SubnetIds:
+          - subnet-0f63bb1c2eb92167a
+          - subnet-07482add44996196f
+          - subnet-0ae6b24bff8b1c85c
     DependsOn:
       - DefaultHandlerServiceRoleDefaultPolicy
       - DefaultHandlerServiceRole
