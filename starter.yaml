@@ -588,3 +588,30 @@ Resources:
       PolicyName: manageConnections
       Roles:
         - Ref: SendMessageHandlerServiceRole
+  contentDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: r-place.s3.us-east-1.amazonaws.com
+            Id: r-place.s3.us-east-1.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity: origin-access-identity/cloudfront/EZ4O6E2BTE5QJ
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          TargetOriginId: r-place.s3.us-east-1.amazonaws.com
+          AllowedMethods:
+            - HEAD
+            - DELETE
+            - POST
+            - GET
+            - OPTIONS
+            - PUT
+            - PATCH
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: false
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
