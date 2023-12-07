@@ -6,11 +6,15 @@ exports.handler = async function (event, context) {
     let connectionInfo;
     let connectionId = event.requestContext.connectionId;
 
+    console.log('event: ', event)
+
     const callbackAPI = new AWS.ApiGatewayManagementApi({
         apiVersion: '2018-11-29',
         endpoint:
             event.requestContext.domainName + '/' + event.requestContext.stage,
     });
+
+    console.log('event.requestContext.connectionId: ', event.requestContext.connectionId)
 
     try {
         connectionInfo = await callbackAPI
@@ -20,9 +24,13 @@ exports.handler = async function (event, context) {
         console.log(e);
     }
 
+    console.log('connectionInfo: ', connectionInfo)
+
     connectionInfo.connectionID = connectionId;
 
     const redisClient = redis.createClient({url:"redis://rplace.wqvx0c.ng.0001.use2.cache.amazonaws.com:6379"});
+
+    console.log('redisClient: ', redisClient)
 
     let board;
     try {
@@ -30,6 +38,8 @@ exports.handler = async function (event, context) {
 
         // Check if the board exists
         board = await redisClient.exists('board');
+
+        console.log('board: ', board)
 
         // If the board doesn't exist, create a white board
         if (!board) {
@@ -40,6 +50,16 @@ exports.handler = async function (event, context) {
         }
         else {
             board = await redisClient.get('board');
+            // Parse the board into an array of {coordinate, color}
+            // The offset = (message.x + message.y * 1000) * 6;
+            board = board.match(/.{1,6}/g);
+            board = board.map((color, index) => {
+                return {
+                    coordinate: `${index % 1000},${Math.floor(index / 1000)}`,
+                    color: `#${color}`
+                }
+            })
+            console.log('board: ', board)
         }
     } catch (err) {
         try {
