@@ -22,43 +22,24 @@ exports.handler = async function (event, context) {
 
     connectionInfo.connectionID = connectionId;
 
-    const redisClient = redis.createClient({
-        host: process.env.redisClusterAddr,
-        port: process.env.redisClusterPort,
-    });
+    const redisClient = redis.createClient({url:"redis://rplace.wqvx0c.ng.0001.use2.cache.amazonaws.com:6379"});
 
     let board;
     try {
         await redisClient.connect();
 
         // Check if the board exists
-        board = await new Promise((resolve, reject) => {
-            redisClient.exists('board', (err, data) => {
-                if (err) reject(err);
-                else resolve(data);
-            });
-        });
+        board = await redisClient.exists('board');
 
         // If the board doesn't exist, create a white board
         if (!board) {
             const whitePixel = "FFFFFF";
             const totalPixels = 1000 * 1000;
             board = whitePixel.repeat(totalPixels);
-
-            await new Promise((resolve, reject) => {
-                redisClient.set('board', board, (err, data) => {
-                    if (err) reject(err);
-                    else resolve(data);
-                });
-            });
+            await redisClient.set('board', board);
         }
         else {
-            board = await new Promise((resolve, reject) => {
-                redisClient.get('board', (err, data) => {
-                    if (err) reject(err);
-                    else resolve(data);
-                });
-            });
+            board = await redisClient.get('board');
         }
     } catch (err) {
         try {
