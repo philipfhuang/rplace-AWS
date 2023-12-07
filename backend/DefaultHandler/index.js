@@ -1,19 +1,16 @@
 const AWS = require('aws-sdk');
+const ddb = new AWS.DynamoDB.DocumentClient();
 const redis = require("redis");
 
 exports.handler = async function (event, context) {
     let connectionInfo;
     let connectionId = event.requestContext.connectionId;
 
-    console.log('event: ', event);
-
     const callbackAPI = new AWS.ApiGatewayManagementApi({
         apiVersion: '2018-11-29',
         endpoint:
             event.requestContext.domainName + '/' + event.requestContext.stage,
     });
-
-    console.log('callbackAPI: ', callbackAPI);
 
     try {
         connectionInfo = await callbackAPI
@@ -23,8 +20,6 @@ exports.handler = async function (event, context) {
         console.log(e);
     }
 
-    console.log('connectionInfo: ', connectionInfo);
-
     connectionInfo.connectionID = connectionId;
 
     const redisClient = redis.createClient({
@@ -32,13 +27,10 @@ exports.handler = async function (event, context) {
         port: process.env.redisClusterPort,
     });
 
-    console.log('redisClient host: ', process.env.redisClusterAddr);
-    console.log('redisClient port: ', process.env.redisClusterPort);
-
-    await redisClient.connect();
-
     let board;
     try {
+        await redisClient.connect();
+
         // Check if the board exists
         board = await new Promise((resolve, reject) => {
             redisClient.exists('board', (err, data) => {
@@ -47,11 +39,8 @@ exports.handler = async function (event, context) {
             });
         });
 
-        console.log('board exists: ', board)
-
         // If the board doesn't exist, create a white board
         if (!board) {
-
             const whitePixel = "FFFFFF";
             const totalPixels = 1000 * 1000;
             board = whitePixel.repeat(totalPixels);
@@ -62,7 +51,6 @@ exports.handler = async function (event, context) {
                     else resolve(data);
                 });
             });
-            console.log('board created: ', board);
         }
         else {
             board = await new Promise((resolve, reject) => {
@@ -71,14 +59,16 @@ exports.handler = async function (event, context) {
                     else resolve(data);
                 });
             });
-            console.log('board retrieved: ', board);
         }
     } catch (err) {
-        console.log('fail to conncet to board table with error: ', err);
-        return {
-            statusCode: 500,
-            message: `fail to conncet to board table with error: ${err}`
-        };
+        try {
+            board = await ddb.scan({ TableName: process.env.boardTable }).promise();
+        } catch (err) {
+            return {
+                statusCode: 500,
+                message: `fail to connect to both Redis and DB with error: ${err}`
+            };
+        }
     }
 
     await callbackAPI
