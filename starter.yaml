@@ -7,8 +7,8 @@ Resources:
       ClusterName: redisCluster
       Engine: redis
       NumCacheNodes: 1
-      CacheSecurityGroupNames:
-        - default
+#      VpcSecurityGroupIds:
+#        - sg-0e487f84042d39dc0
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -267,7 +267,7 @@ Resources:
           redisClusterPort: !GetAtt ElasticacheCluster.RedisEndpoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
-      Timeout: 60
+      Timeout: 3
       VpcConfig:
         SecurityGroupIds:
           - sg-0e487f84042d39dc0
@@ -342,7 +342,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: default-handler-code
-        S3Key: Archive.zip
+        S3Key: Index.zip
       Role:
         Fn::GetAtt:
           - DefaultHandlerServiceRole
@@ -355,12 +355,7 @@ Resources:
           redisClusterPort: !GetAtt ElasticacheCluster.RedisEndpoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
-      Timeout: 60
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-0e487f84042d39dc0
-        SubnetIds:
-          - subnet-0925937c6fbcf9935
+      Timeout: 3
     DependsOn:
       - DefaultHandlerServiceRoleDefaultPolicy
       - DefaultHandlerServiceRole
@@ -628,8 +623,3 @@ Resources:
         PriceClass: PriceClass_All
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
-  guardDuty:
-    Type: AWS::GuardDuty::Detector
-    Properties:
-      Enable: true
-      FindingPublishingFrequency: FIFTEEN_MINUTES
