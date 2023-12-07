@@ -7,8 +7,9 @@ Resources:
       ClusterName: redisCluster
       Engine: redis
       NumCacheNodes: 1
-#      VpcSecurityGroupIds:
-#        - sg-0e487f84042d39dc0
+      CacheSubnetGroupName: r-place
+      VpcSecurityGroupIds:
+        - sg-0e487f84042d39dc0
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
