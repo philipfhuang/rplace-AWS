@@ -93,7 +93,7 @@ function displayError() {
 }
 
 function connectWebSocket() {
-    socket = new WebSocket('wss://0s8s92wwga.execute-api.us-east-2.amazonaws.com/production/');
+    socket = new WebSocket('wss://g9jrt5grcj.execute-api.us-east-2.amazonaws.com/production/');
 
     socket.addEventListener('open', (event) => {
         socket.send(JSON.stringify({ "action": "initialize" }));

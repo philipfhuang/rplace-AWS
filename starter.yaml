@@ -1,22 +1,22 @@
 Resources:
-  CacheCluster:
-    Type: AWS::ElastiCache::ReplicationGroup
-    Properties:
-      AutomaticFailoverEnabled: true
-      ReplicationGroupDescription: Redis Replication Group
-      CacheNodeType: cache.t2.micro
-      Engine: redis
-      NumNodeGroups: 2
-      ReplicasPerNodeGroup: 1
-      CacheSubnetGroupName: default
-      MultiAZEnabled: true
-      NodeGroupConfiguration:
-        - PrimaryAvailabilityZone: us-east-2a
-          ReplicaAvailabilityZones:
-            - us-east-2b
-        - PrimaryAvailabilityZone: us-east-2b
-          ReplicaAvailabilityZones:
-            - us-east-2a
+#  CacheCluster:
+#    Type: AWS::ElastiCache::ReplicationGroup
+#    Properties:
+#      AutomaticFailoverEnabled: true
+#      ReplicationGroupDescription: Redis Replication Group
+#      CacheNodeType: cache.t2.micro
+#      Engine: redis
+#      NumNodeGroups: 2
+#      ReplicasPerNodeGroup: 1
+#      CacheSubnetGroupName: default
+#      MultiAZEnabled: true
+#      NodeGroupConfiguration:
+#        - PrimaryAvailabilityZone: us-east-2a
+#          ReplicaAvailabilityZones:
+#            - us-east-2b
+#        - PrimaryAvailabilityZone: us-east-2b
+#          ReplicaAvailabilityZones:
+#            - us-east-2a
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -260,7 +260,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: send-msg-handler-code
-        S3Key: Archive.zip
+        S3Key: Handler.zip
       Role:
         Fn::GetAtt:
           - SendMessageHandlerServiceRole
@@ -354,7 +354,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: default-handler-code
-        S3Key: Index.zip
+        S3Key: Handler.zip
       Role:
         Fn::GetAtt:
           - DefaultHandlerServiceRole

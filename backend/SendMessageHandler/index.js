@@ -4,29 +4,28 @@ const redis = require("redis");
 
 exports.handler = async function (event, context) {
     const message = JSON.parse(event.body).message;
-    console.log('message: ', message);
 
     // Check if the user has drawn in the last 5 minutes
-    try {
-        const userTime = await ddb.query({
-            TableName: process.env.userTable,
-            KeyConditionExpression: 'userId = :userId',
-            ExpressionAttributeValues: {
-                ':userId': message.user,
-            },
-        }).promise();
-        if (!(userTime.Items.length === 0 || Date.now() - userTime.Items[0].time > 300000)) {
-            return {
-                statusCode: 403,
-                message: "You can only draw once every 5 minutes"
-            };
-        }
-    } catch (err) {
-        return {
-            statusCode: 500,
-            message: `fail to connect user db with error: ${err}`
-        };
-    }
+    // try {
+    //     const userTime = await ddb.query({
+    //         TableName: process.env.userTable,
+    //         KeyConditionExpression: 'userId = :userId',
+    //         ExpressionAttributeValues: {
+    //             ':userId': message.user,
+    //         },
+    //     }).promise();
+    //     if (!(userTime.Items.length === 0 || Date.now() - userTime.Items[0].time > 300000)) {
+    //         return {
+    //             statusCode: 403,
+    //             message: "You can only draw once every 5 minutes"
+    //         };
+    //     }
+    // } catch (err) {
+    //     return {
+    //         statusCode: 500,
+    //         message: `fail to connect user db with error: ${err}`
+    //     };
+    // }
 
     try {
         await ddb
@@ -48,26 +47,13 @@ exports.handler = async function (event, context) {
         };
     }
 
-    const redisClient = redis.createClient({
-        host: process.env.redisClusterAddr,
-        port: process.env.redisClusterPort,
-    });
-
-    console.log('redisClient host: ', process.env.redisClusterAddr);
-    console.log('redisClient port: ', process.env.redisClusterPort);
+    const redisClient = redis.createClient({url:"redis://rplace.wqvx0c.ng.0001.use2.cache.amazonaws.com:6379"});
 
     await redisClient.connect();
 
     try {
         // Check if the board exists
-        const boardExists = await new Promise((resolve, reject) => {
-            redisClient.exists('board', (err, data) => {
-                if (err) reject(err);
-                else resolve(data);
-            });
-        });
-
-        console.log('board exists: ', boardExists)
+        const boardExists = await redisClient.exists('board');
 
         // If the board doesn't exist, create a white board
         if (!boardExists) {
@@ -76,25 +62,14 @@ exports.handler = async function (event, context) {
             const totalPixels = 1000 * 1000;
             const whiteBoard = whitePixel.repeat(totalPixels);
 
-            await new Promise((resolve, reject) => {
-                redisClient.set('board', whiteBoard, (err, data) => {
-                    if (err) reject(err);
-                    else resolve(data);
-                });
-            });
-            console.log('whiteBoard: ', whiteBoard)
+            await redisClient.SET('board', whiteBoard);
         }
         // Get rid of the # in the color
         let color = message.color.slice(1);
         const offset = (message.x + message.y * 1000) * 6;
 
         // Set the color at the offset
-        await new Promise((resolve, reject) => {
-            redisClient.setRange("board", offset, color, (err, data) => {
-                if (err) reject(err);
-                resolve(data);
-            });
-        });
+        await redisClient.SETRANGE("board", offset, color);
         console.log('offset: ', offset)
 
     } catch (err) {
