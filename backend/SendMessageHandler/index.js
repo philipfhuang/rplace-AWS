@@ -6,6 +6,28 @@ exports.handler = async function (event, context) {
     const message = JSON.parse(event.body).message;
     console.log('message: ', message);
 
+    // Check if the user has drawn in the last 5 minutes
+    try {
+        const userTime = await ddb.query({
+            TableName: process.env.userTable,
+            KeyConditionExpression: 'userId = :userId',
+            ExpressionAttributeValues: {
+                ':userId': message.user,
+            },
+        }).promise();
+        if (!(userTime.Items.length === 0 || Date.now() - userTime.Items[0].time > 300000)) {
+            return {
+                statusCode: 403,
+                message: "You can only draw once every 5 minutes"
+            };
+        }
+    } catch (err) {
+        return {
+            statusCode: 500,
+            message: `fail to connect user db with error: ${err}`
+        };
+    }
+
     try {
         await ddb
             .put({
@@ -114,6 +136,25 @@ exports.handler = async function (event, context) {
         return {
             statusCode: 500,
             message: `cant send message with error: ${e}`
+        };
+    }
+
+    // Update the user's last draw time
+    try {
+        await ddb
+            .put({
+                TableName: process.env.userTable,
+                Item: {
+                    userId: message.user,
+                    time: Date.now(),
+                },
+            })
+            .promise();
+    } catch (err) {
+        console.log('err: ', err)
+        return {
+            statusCode: 500,
+            message: `fail to connect user db with error: ${err}`
         };
     }
 
