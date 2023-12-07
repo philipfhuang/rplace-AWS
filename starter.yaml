@@ -19,8 +19,22 @@ Resources:
         - AttributeName: connectionId
           AttributeType: S
       ProvisionedThroughput:
-        ReadCapacityUnits: 10
-        WriteCapacityUnits: 10
+        ReadCapacityUnits: 6
+        WriteCapacityUnits: 6
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 6
+        WriteCapacityUnits: 6
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
   BoardTable:
@@ -33,8 +47,8 @@ Resources:
         - AttributeName: coordinate
           AttributeType: S
       ProvisionedThroughput:
-        ReadCapacityUnits: 10
-        WriteCapacityUnits: 10
+        ReadCapacityUnits: 7
+        WriteCapacityUnits: 7
     UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
   ConnectHandlerServiceRole:
@@ -224,6 +238,9 @@ Resources:
                   - Arn
               - Fn::GetAtt:
                   - BoardTable
+                  - Arn
+              - Fn::GetAtt:
+                  - UserTable
                   - Arn
               - Ref: AWS::NoValue
         Version: "2012-10-17"
