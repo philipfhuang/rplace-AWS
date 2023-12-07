@@ -1,14 +1,26 @@
 Resources:
-  ElasticacheCluster:
+  CacheCluster:
     Type: AWS::ElastiCache::CacheCluster
     Properties:
       AutoMinorVersionUpgrade: yes
       CacheNodeType: cache.t2.micro
-      ClusterName: redisCluster
+      ClusterName: redis-cluster
       Engine: redis
       NumCacheNodes: 1
       CacheSubnetGroupName: r-place
       VpcSecurityGroupIds:
+        - sg-0e487f84042d39dc0
+  ReplicationStack:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties:
+      ReplicationGroupDescription: Redis Replication Group
+      CacheNodeType: cache.t2.micro
+      Engine: redis
+      NumNodeGroups: 2
+      ReplicasPerNodeGroup: 2
+      CacheSubnetGroupName: r-place
+      MultiAZEnabled: true
+      SecurityGroupIds:
         - sg-0e487f84042d39dc0
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
@@ -266,8 +278,8 @@ Resources:
             Ref: BoardTable
           userTable:
             Ref: UserTable
-          redisClusterAddr: !GetAtt ElasticacheCluster.RedisEndpoint.Address
-          redisClusterPort: !GetAtt ElasticacheCluster.RedisEndpoint.Port
+          redisClusterAddr: !GetAtt CacheCluster.RedisEndpoint.Address
+          redisClusterPort: !GetAtt CacheCluster.RedisEndpoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
       Timeout: 3
@@ -354,8 +366,8 @@ Resources:
         Variables:
           boardTable:
             Ref: BoardTable
-          redisClusterAddr: !GetAtt ElasticacheCluster.RedisEndpoint.Address
-          redisClusterPort: !GetAtt ElasticacheCluster.RedisEndpoint.Port
+          redisClusterAddr: !GetAtt CacheCluster.RedisEndpoint.Address
+          redisClusterPort: !GetAtt CacheCluster.RedisEndpoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
       Timeout: 3
