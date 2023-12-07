@@ -1,27 +1,22 @@
 Resources:
   CacheCluster:
-    Type: AWS::ElastiCache::CacheCluster
-    Properties:
-      AutoMinorVersionUpgrade: yes
-      CacheNodeType: cache.t2.micro
-      ClusterName: redis-cluster
-      Engine: redis
-      NumCacheNodes: 1
-      CacheSubnetGroupName: r-place
-      VpcSecurityGroupIds:
-        - sg-0e487f84042d39dc0
-  ReplicationStack:
     Type: AWS::ElastiCache::ReplicationGroup
     Properties:
+      AutomaticFailoverEnabled: true
       ReplicationGroupDescription: Redis Replication Group
       CacheNodeType: cache.t2.micro
       Engine: redis
       NumNodeGroups: 2
-      ReplicasPerNodeGroup: 2
-      CacheSubnetGroupName: r-place
+      ReplicasPerNodeGroup: 1
+      CacheSubnetGroupName: default
       MultiAZEnabled: true
-      SecurityGroupIds:
-        - sg-0e487f84042d39dc0
+      NodeGroupConfiguration:
+        - PrimaryAvailabilityZone: us-east-2a
+          ReplicaAvailabilityZones:
+            - us-east-2b
+        - PrimaryAvailabilityZone: us-east-2b
+          ReplicaAvailabilityZones:
+            - us-east-2a
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -278,16 +273,18 @@ Resources:
             Ref: BoardTable
           userTable:
             Ref: UserTable
-          redisClusterAddr: !GetAtt CacheCluster.RedisEndpoint.Address
-          redisClusterPort: !GetAtt CacheCluster.RedisEndpoint.Port
+          redisClusterAddr: !GetAtt CacheCluster.ConfigurationEndPoint.Address
+          redisClusterPort: !GetAtt CacheCluster.ConfigurationEndPoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
       Timeout: 3
       VpcConfig:
         SecurityGroupIds:
-          - sg-0e487f84042d39dc0
+          - sg-07575d9608f6fcce8
         SubnetIds:
-          - subnet-04cdb05fc28e14935
+          - subnet-0f63bb1c2eb92167a
+          - subnet-07482add44996196f
+          - subnet-0ae6b24bff8b1c85c
     DependsOn:
       - SendMessageHandlerServiceRoleDefaultPolicy
       - SendMessageHandlerServiceRole
@@ -366,8 +363,8 @@ Resources:
         Variables:
           boardTable:
             Ref: BoardTable
-          redisClusterAddr: !GetAtt CacheCluster.RedisEndpoint.Address
-          redisClusterPort: !GetAtt CacheCluster.RedisEndpoint.Port
+          redisClusterAddr: !GetAtt CacheCluster.ConfigurationEndPoint.Address
+          redisClusterPort: !GetAtt CacheCluster.ConfigurationEndPoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
       Timeout: 3
