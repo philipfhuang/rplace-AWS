@@ -99,7 +99,11 @@ function connectWebSocket() {
         socket.send(JSON.stringify({ "action": "initialize" }));
     });
 
-    socket.addEventListener('error', () => {
+    socket.addEventListener('error', (error) => {
+        if (error.code == 403) {
+            dial.showModal();
+            return
+        }
         displayError();
     });
 
