@@ -616,7 +616,7 @@ Resources:
             - PATCH
           ViewerProtocolPolicy: redirect-to-https
           ForwardedValues:
-            QueryString: false
+            QueryString: true
         PriceClass: PriceClass_All
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
