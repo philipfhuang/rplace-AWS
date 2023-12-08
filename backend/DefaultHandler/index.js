@@ -52,7 +52,6 @@ exports.handler = async function (event, context) {
             board = board.match(/.{1,6}/g);
             board = board
                 .map((color, index) => {
-                    console.log(index % 1000, Math.floor(index / 1000))
                     return {
                         coordinate: `${index % 1000},${Math.floor(index / 1000)}`,
                         color: `#${color}`
