@@ -5,7 +5,6 @@ const redis = require("redis");
 exports.handler = async function (event, context) {
     let connectionInfo;
     let connectionId = event.requestContext.connectionId;
-
     console.log('event: ', event)
 
     const callbackAPI = new AWS.ApiGatewayManagementApi({
@@ -13,33 +12,30 @@ exports.handler = async function (event, context) {
         endpoint:
             event.requestContext.domainName + '/' + event.requestContext.stage,
     });
-
     console.log('event.requestContext.connectionId: ', event.requestContext.connectionId)
 
     try {
         connectionInfo = await callbackAPI
-            .getConnection({ ConnectionId: event.requestContext.connectionId })
+            .getConnection({ConnectionId: event.requestContext.connectionId})
             .promise();
     } catch (e) {
         console.log(e);
     }
-
     console.log('connectionInfo: ', connectionInfo)
 
     connectionInfo.connectionID = connectionId;
 
-    const redisClient = redis.createClient({url:"redis://rplace.wqvx0c.ng.0001.use2.cache.amazonaws.com:6379"});
-
+    const redisClient = redis.createClient({url: "redis://rplace.wqvx0c.ng.0001.use2.cache.amazonaws.com:6379"});
     console.log('redisClient: ', redisClient)
 
     let board;
     try {
         await redisClient.connect();
+        console.log('redisClient connected')
 
         // Check if the board exists
         board = await redisClient.exists('board');
-
-        console.log('board: ', board)
+        console.log('board exist: ', board)
 
         // If the board doesn't exist, create a white board
         if (!board) {
@@ -47,23 +43,26 @@ exports.handler = async function (event, context) {
             const totalPixels = 1000 * 1000;
             board = whitePixel.repeat(totalPixels);
             await redisClient.set('board', board);
-        }
-        else {
+            console.log('board set: white board')
+        } else {
             board = await redisClient.get('board');
+
             // Parse the board into an array of {coordinate, color}
             // The offset = (message.x + message.y * 1000) * 6;
             board = board.match(/.{1,6}/g);
-            board = board.map((color, index) => {
-                return {
-                    coordinate: `${index % 1000},${Math.floor(index / 1000)}`,
-                    color: `#${color}`
-                }
-            })
-            console.log('board: ', board)
+            board = board
+                .filter(color => color !== "FFFFFF")
+                .map((color, index) => {
+                    return {
+                        coordinate: `${index % 1000},${Math.floor(index / 1000)}`,
+                        color: `#${color}`
+                    }
+                });
+            console.log('board filtered: ', board);
         }
     } catch (err) {
         try {
-            board = await ddb.scan({ TableName: process.env.boardTable }).promise();
+            board = await ddb.scan({TableName: process.env.boardTable}).promise();
         } catch (err) {
             return {
                 statusCode: 500,
