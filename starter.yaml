@@ -1,22 +1,4 @@
 Resources:
-#  CacheCluster:
-#    Type: AWS::ElastiCache::ReplicationGroup
-#    Properties:
-#      AutomaticFailoverEnabled: true
-#      ReplicationGroupDescription: Redis Replication Group
-#      CacheNodeType: cache.t2.micro
-#      Engine: redis
-#      NumNodeGroups: 2
-#      ReplicasPerNodeGroup: 1
-#      CacheSubnetGroupName: default
-#      MultiAZEnabled: true
-#      NodeGroupConfiguration:
-#        - PrimaryAvailabilityZone: us-east-2a
-#          ReplicaAvailabilityZones:
-#            - us-east-2b
-#        - PrimaryAvailabilityZone: us-east-2b
-#          ReplicaAvailabilityZones:
-#            - us-east-2a
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -273,11 +255,9 @@ Resources:
             Ref: BoardTable
           userTable:
             Ref: UserTable
-#          redisClusterAddr: !GetAtt CacheCluster.ConfigurationEndPoint.Address
-#          redisClusterPort: !GetAtt CacheCluster.ConfigurationEndPoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
-      Timeout: 3
+      Timeout: 15
       VpcConfig:
         SecurityGroupIds:
           - sg-07575d9608f6fcce8
@@ -363,11 +343,9 @@ Resources:
         Variables:
           boardTable:
             Ref: BoardTable
-#          redisClusterAddr: !GetAtt CacheCluster.ConfigurationEndPoint.Address
-#          redisClusterPort: !GetAtt CacheCluster.ConfigurationEndPoint.Port
       Handler: index.handler
       Runtime: nodejs16.x
-      Timeout: 3
+      Timeout: 15
       VpcConfig:
         SecurityGroupIds:
           - sg-07575d9608f6fcce8
