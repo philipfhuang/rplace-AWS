@@ -36,7 +36,6 @@ const startClerk = async () => {
 };
 
 function drawPixel(x, y, color) {
-    console.log(x, y, color);
     context.fillStyle = color;
     context.fillRect(x, y, 1, 1);
 }
@@ -93,7 +92,7 @@ function displayError() {
 }
 
 function connectWebSocket() {
-    socket = new WebSocket('wss://g9jrt5grcj.execute-api.us-east-2.amazonaws.com/production/');
+    socket = new WebSocket('wss://yfmh5o1hc7.execute-api.us-east-2.amazonaws.com/production/');
 
     socket.addEventListener('open', (event) => {
         socket.send(JSON.stringify({ "action": "initialize" }));
