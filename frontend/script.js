@@ -41,7 +41,6 @@ function drawPixel(x, y, color) {
 }
 
 function initializeCanvas(data) {
-    data = data.Items;
     data.forEach(pixel => {
         const { coordinate, color } = pixel;
         const [x, y] = coordinate.split(',').map(Number);
@@ -107,6 +106,7 @@ function connectWebSocket() {
     });
 
     socket.addEventListener('message', (event) => {
+        console.log("connected")
         if (!event.data) return;
         if (JSON.parse(event.data).message == 'Internal server error') {
             displayError();
