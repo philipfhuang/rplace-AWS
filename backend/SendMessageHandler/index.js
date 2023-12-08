@@ -48,12 +48,14 @@ exports.handler = async function (event, context) {
     }
 
     const redisClient = redis.createClient({url:"redis://rplace.wqvx0c.ng.0001.use2.cache.amazonaws.com:6379"});
-
+    console.log('redisClient: ', redisClient)
     await redisClient.connect();
+    console.log('redisClient connected')
 
     try {
         // Check if the board exists
         const boardExists = await redisClient.exists('board');
+        console.log('board exist: ', boardExists)
 
         // If the board doesn't exist, create a white board
         if (!boardExists) {
@@ -62,7 +64,8 @@ exports.handler = async function (event, context) {
             const totalPixels = 1000 * 1000;
             const whiteBoard = whitePixel.repeat(totalPixels);
 
-            await redisClient.SET('board', whiteBoard);
+            await redisClient.set('board', whiteBoard);
+            console.log('board set: white board')
         }
         // Get rid of the # in the color
         let color = message.color.slice(1);
@@ -70,8 +73,7 @@ exports.handler = async function (event, context) {
 
         // Set the color at the offset
         await redisClient.SETRANGE("board", offset, color);
-        console.log('offset: ', offset)
-
+        console.log('board pixel offset: ', offset)
     } catch (err) {
         return {
             statusCode: 500,

@@ -51,12 +51,15 @@ exports.handler = async function (event, context) {
             // The offset = (message.x + message.y * 1000) * 6;
             board = board.match(/.{1,6}/g);
             board = board
-                .filter(color => color !== "FFFFFF")
                 .map((color, index) => {
+                    console.log(index % 1000, Math.floor(index / 1000))
                     return {
                         coordinate: `${index % 1000},${Math.floor(index / 1000)}`,
                         color: `#${color}`
                     }
+                })
+                .filter((pixel) => {
+                    return pixel.color !== '#FFFFFF'
                 });
             console.log('board filtered: ', board);
         }
