@@ -106,7 +106,6 @@ function connectWebSocket() {
     });
 
     socket.addEventListener('message', (event) => {
-        console.log("connected")
         if (!event.data) return;
         if (JSON.parse(event.data).message == 'Internal server error') {
             displayError();
