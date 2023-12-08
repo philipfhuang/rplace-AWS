@@ -6,26 +6,37 @@ exports.handler = async function (event, context) {
     const message = JSON.parse(event.body).message;
 
     // Check if the user has drawn in the last 5 minutes
-    // try {
-    //     const userTime = await ddb.query({
-    //         TableName: process.env.userTable,
-    //         KeyConditionExpression: 'userId = :userId',
-    //         ExpressionAttributeValues: {
-    //             ':userId': message.user,
-    //         },
-    //     }).promise();
-    //     if (!(userTime.Items.length === 0 || Date.now() - userTime.Items[0].time > 300000)) {
-    //         return {
-    //             statusCode: 403,
-    //             message: "You can only draw once every 5 minutes"
-    //         };
-    //     }
-    // } catch (err) {
-    //     return {
-    //         statusCode: 500,
-    //         message: `fail to connect user db with error: ${err}`
-    //     };
-    // }
+    try {
+        const userTime = await ddb.query({
+            TableName: process.env.userTable,
+            KeyConditionExpression: 'userId = :userId',
+            ExpressionAttributeValues: {
+                ':userId': message.user,
+            },
+        }).promise();
+        console.log('userTime: ', userTime)
+        if (!(userTime.Items.length === 0 || Date.now() - userTime.Items[0].time > 300000)) {
+            return {
+                statusCode: 403,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: "You can only draw once every 5 minutes"
+                })
+            };
+        }
+    } catch (err) {
+        return {
+            statusCode: 500,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `fail to connect user db with error: ${err}`
+            })
+        };
+    }
 
     try {
         await ddb
@@ -43,11 +54,16 @@ exports.handler = async function (event, context) {
         console.log('err: ', err)
         return {
             statusCode: 500,
-            message: `fail to connect board db with error: ${err}`
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `fail to connect board db with error: ${err}`
+            })
         };
     }
 
-    const redisClient = redis.createClient({url:"redis://rplace.wqvx0c.ng.0001.use2.cache.amazonaws.com:6379"});
+    const redisClient = redis.createClient({url: "redis://rplace.wqvx0c.ng.0001.use2.cache.amazonaws.com:6379"});
     console.log('redisClient: ', redisClient)
     await redisClient.connect();
     console.log('redisClient connected')
@@ -77,17 +93,27 @@ exports.handler = async function (event, context) {
     } catch (err) {
         return {
             statusCode: 500,
-            message: `fail to connect redis cache with error: ${err}`
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `fail to connect redis with error: ${err}`
+            })
         };
     }
 
     let connections;
     try {
-        connections = await ddb.scan({ TableName: process.env.table }).promise();
+        connections = await ddb.scan({TableName: process.env.table}).promise();
     } catch (err) {
         return {
             statusCode: 500,
-            message: `fail to connect connection db with error: ${err}`
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `fail to connect connection db with error: ${err}`
+            })
         };
     }
     const callbackAPI = new AWS.ApiGatewayManagementApi({
@@ -96,10 +122,10 @@ exports.handler = async function (event, context) {
             event.requestContext.domainName + '/' + event.requestContext.stage,
     });
 
-    const sendMessages = connections.Items.map(async ({ connectionId }) => {
+    const sendMessages = connections.Items.map(async ({connectionId}) => {
         try {
             await callbackAPI
-                .postToConnection({ ConnectionId: connectionId, Data: JSON.stringify(message) })
+                .postToConnection({ConnectionId: connectionId, Data: JSON.stringify(message)})
                 .promise();
         } catch (e) {
             console.log(e);
@@ -112,7 +138,12 @@ exports.handler = async function (event, context) {
         console.log(e);
         return {
             statusCode: 500,
-            message: `cant send message with error: ${e}`
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `fail to send message with error: ${e}`
+            })
         };
     }
 
@@ -131,9 +162,13 @@ exports.handler = async function (event, context) {
         console.log('err: ', err)
         return {
             statusCode: 500,
-            message: `fail to connect user db with error: ${err}`
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: `fail to connect user db with error: ${err}`
+            })
         };
     }
-
-    return { statusCode: 200 };
+    return {statusCode: 200};
 };
