@@ -4,7 +4,7 @@ Sure, here's a more detailed and clear version of the README:
 
 # r/place Duplicate using AWS
 
-This project aims to replicate the functionality of Reddit's "r/place" using resources provided by Amazon Web Services (AWS). "r/place" was a collaborative online canvas where users could place pixels on a large grid, creating pixel art and designs together.
+This project aims to replicate the functionality of Reddit's "<a href="https://www.reddit.com/r/place/">r/place</a>" using resources provided by <a href="https://aws.amazon.com/">Amazon Web Services (AWS)</a>. "r/place" was a collaborative online canvas where users could place pixels on a large grid, creating pixel art and designs together.
 
 ## What is r/place?
 
